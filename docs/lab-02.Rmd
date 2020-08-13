@@ -43,6 +43,8 @@ cum_cases <- subset %>%
 knitr::kable(cum_cases, caption = "5 California Counties with Most Cumulative COVID Cases", col.names = c("Date","County","State","FIPS","Total Cases","Total Deaths"))
 ```
 
+*****
+
 ```{r, echo=F}
 new_cases <- subset %>% 
   arrange(-new_daily_cases) %>% 
@@ -50,6 +52,8 @@ new_cases <- subset %>%
   head(5)
 knitr::kable(new_cases, caption = "5 California Counties with Most New Daily COVID Cases", col.names = c("Date","County","State","FIPS","Total Cases","Total Deaths","New Cases"))
 ```
+
+*****
 
 ```{r, echo=F}
 library(readxl)
@@ -68,6 +72,8 @@ chart1 <- covid_population %>%
 knitr::kable(chart1, caption = "5 California Counties With the Most COVID Cases Per Capita", col.names = c('Date', 'County', 'State', 'FIPS', 'Cases', 'Deaths', 'Population', 'Cases Per Capita'))
 ```
 
+*****
+
 ```{r, echo=F}
 chart2 <- covid_population %>% 
   filter(state == 'California') %>% 
@@ -80,6 +86,8 @@ chart2 <- covid_population %>%
   head(5)
 knitr::kable(chart2, caption = '5 California Counties With the Most New Daily COVID Cases Per Capita', col.names = c('Date', 'County' ,'State', 'FIPS', 'Cases', 'Deaths', 'Population', 'New Daily Cases', 'New Daily Cases Per Capita'))
 ```
+
+*****
 
 ```{r, message=F, warning=F, echo=F}
 list_of_counties <- covid_population %>% 
@@ -111,7 +119,10 @@ knitr::kable(total_new_cases, caption = "Total New Cases In Last 14 Days Per Cal
 knitr::kable(list_of_safe_counties, caption = "List of Safe Counties", col.names = c("County","New Cases Per 100,000 People"))
 print("As of 8/13/2020, there are a total of 14 safe counties within the state of California that comply to the California Department of Public Health's criteria of having less than 100 new cases per 100,000 residents over the past 14 days")
 ```
-## Question 2
+
+*****
+
+## Question 2: What Are The Impacts of Scale on Data Interpretation?
 ```{r, echo=F, warning=F, message=F}
 library(ggthemes)
 covid %>% 
@@ -138,6 +149,8 @@ covid %>%
   theme_bw() +
   theme(legend.position = 'none') 
 ```
+
+*****
 
 ```{r, echo=F, warning=F, message=F}
 states_covid = covid %>% 
@@ -182,7 +195,14 @@ percapdata %>%
   theme(legend.position = 'none') 
 ```
 
+*****
 
 Scaling by population had a huge influence on the analysis of the data.  If we look at the first graph, it appears that out of the four states, Louisiana has had the least number of new cases as well as the lowest seven day average.  While this may be the case, the first graph does not show the entire story. If we look at the second graph it is clear that Louisiana has had the most new daily cases **with respect to its population size.**  The first graph makes Louisiana look the best out of the four states while the second graph makes them look the worst.
 
+<center>
+```{r, echo=FALSE}
+library(icon)
+fa("globe", size = 5, color="green")
+```
+</center>
 
