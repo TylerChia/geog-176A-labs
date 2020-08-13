@@ -136,20 +136,17 @@ covid %>%
   ungroup(state, date) %>% 
   group_by(state) %>% 
   mutate(NewDailyCases = cases - lag(cases)) %>%
-  mutate(SevenDayAvg = rollmean(NewDailyCases, 7, fill = NA)) %>% 
-  na.omit() %>% 
-  pivot_longer(cols = c('NewDailyCases', 'SevenDayAvg'),
-              names_to = 'type',
-              values_to = 'value') %>% 
-  ggplot(aes(x = date, y = value)) +
-  geom_col(aes(color = state)) +
+  mutate(SevenDayAvg = rollmean(NewDailyCases, 7, fill = NA, align = "right")) %>% 
+  ggplot(aes(x = date)) +
+  geom_col(aes(y = NewDailyCases), col = NA, fill = "#F5B8B5") +
+  geom_line(aes(y = SevenDayAvg), col = "darkred", size = 1) +
   labs(title = "Daily, New Cases Per State: COVID-19 Pandemic",
        x = 'Date',
        y = "Number of New, Daily Cases",
        caption = "Based on NY Times Covid-19 Data",
        subtitle = "Lab 02",
        color = "") +
-  facet_grid(type~state) +
+  facet_wrap(~state)
   theme_bw() +
   theme(legend.position = 'none') 
 ```
@@ -164,8 +161,7 @@ states_covid = covid %>%
   ungroup(state, date) %>% 
   group_by(state) %>% 
   mutate(NewDailyCases = cases - lag(cases)) %>%
-  mutate(SevenDayAvg = rollmean(NewDailyCases, 7, fill = NA)) %>% 
-  na.omit() 
+  mutate(SevenDayAvg = rollmean(NewDailyCases, 7, fill = NA, align = "right"))
 
 StatePopulationEstimates1 <- read_excel("~/github/geog-176A-labs/data/PopulationEstimates.xls", skip = 2) %>% 
   select(pop19 = POP_ESTIMATE_2019, state_abbr = State, state = Area_Name) %>% 
@@ -179,22 +175,19 @@ newjoineddata = inner_join(states_covid, StatePopulationEstimates1, by = 'state'
 percapdata <- newjoineddata %>% 
   group_by(state) %>% 
   mutate(NewCasesPerCap = NewDailyCases / pop19) %>% 
-  mutate(NewSevenDayAvg = rollmean(NewCasesPerCap, 7, fill = NA)) %>% 
-  na.omit()
+  mutate(NewSevenDayAvg = rollmean(NewCasesPerCap, 7, fill = NA, align = "right")) 
 
 percapdata %>% 
-  pivot_longer(cols = c('NewCasesPerCap', 'NewSevenDayAvg'),
-              names_to = 'type',
-              values_to = 'value') %>% 
-  ggplot(aes(x = date, y = value)) +
-  geom_col(aes(color = state)) +
+  ggplot(aes(x = date)) +
+  geom_col(aes(y = NewCasesPerCap), col = "lightblue") +
+  geom_line(aes(y = NewSevenDayAvg), col = "blue", size = 1) +
   labs(title = "Daily, New Cases Per Capita Per State: COVID-19 Pandemic",
        x = 'Date',
        y = "Number of New, Daily Cases",
        caption = "Based on NY Times Covid-19 Data",
        subtitle = "Lab 02",
        color = "") +
-  facet_grid(type~state) +
+  facet_wrap(~state)+
   theme_bw() +
   theme(legend.position = 'none') 
 ```
