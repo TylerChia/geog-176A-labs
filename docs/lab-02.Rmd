@@ -112,7 +112,7 @@ knitr::kable(list_of_safe_counties, caption = "List of Safe Counties", col.names
 print("As of 8/13/2020, there are a total of 14 safe counties within the state of California that comply to the California Department of Public Health's criteria of having less than 100 new cases per 100,000 residents over the past 14 days")
 ```
 ## Question 2
-```{r}
+```{r, echo=F}
 library(ggthemes)
 covid %>% 
   filter(state %in% c('New York', 'California', 'Louisiana', 'Florida')) %>% 
@@ -139,7 +139,7 @@ covid %>%
   theme(legend.position = 'none') 
 ```
 
-```{r}
+```{r, echo=F}
 states_covid = covid %>% 
   filter(state %in% c('New York', 'California', 'Louisiana', 'Florida')) %>% 
   group_by(state, date) %>% 
@@ -181,6 +181,8 @@ percapdata %>%
   theme_bw() +
   theme(legend.position = 'none') 
 ```
+
+
 Scaling by population had a huge influence on the analysis of the data.  If we look at the first graph, it appears that out of the four states, Louisiana has had the least number of new cases as well as the lowest seven day average.  While this may be the case, the first graph does not show the entire story. If we look at the second graph it is clear that Louisiana has had the most new daily cases **with respect to its population size.**  The first graph makes Louisiana look the best out of the four states while the second graph makes them look the worst.
 
-## Question 3
+
