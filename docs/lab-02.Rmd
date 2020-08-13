@@ -1,0 +1,186 @@
+---
+title: "Geography 176A"
+author: "Tyler Chia"
+subtitle: "Lab 02: COVID-19 Pandemic"
+date: "08/11/2020"
+output:
+  html_document:
+    theme: journal
+---
+
+```{r, message=FALSE, warning=FALSE, echo = F}
+library(tidyverse)
+library(knitr)
+library(readxl)
+library(zoo)
+```
+For this lab we will use the historic, county level data which is stored as an updating CSV at this URL:
+```{r, eval = FALSE}
+https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv
+```
+
+```{r, message=FALSE, warning=FALSE, echo=F}
+url <- 'https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv'
+
+covid <- read_csv(url)
+
+```
+## Question 1: Which Counties in California are Safe?
+```{r, echo=F}
+subset <- covid %>% 
+  filter(state == 'California') %>% 
+  group_by(county) %>% 
+  mutate(new_daily_cases = cases - lag(cases)) %>% 
+  ungroup(county)
+```
+
+```{r, echo=F}
+cum_cases <- subset %>% 
+  select("date", "county", "state", "fips", "cases", "deaths") %>% 
+  filter(date == max(date)) %>% 
+  arrange(-cases) %>% 
+  head(5)
+knitr::kable(cum_cases, caption = "5 California Counties with Most Cumulative COVID Cases", col.names = c("Date","County","State","FIPS","Total Cases","Total Deaths"))
+```
+
+```{r, echo=F}
+new_cases <- subset %>% 
+  arrange(-new_daily_cases) %>% 
+  filter(date == max(date)) %>% 
+  head(5)
+knitr::kable(new_cases, caption = "5 California Counties with Most New Daily COVID Cases", col.names = c("Date","County","State","FIPS","Total Cases","Total Deaths","New Cases"))
+```
+
+```{r, echo=F}
+library(readxl)
+StatePopulationEstimates <- read_excel("~/github/geog-176A-labs/data/PopulationEstimates.xls", skip = 2) %>% 
+  select(pop19 = POP_ESTIMATE_2019, fips = FIPStxt)
+covid_population <- inner_join(covid, StatePopulationEstimates, by = 'fips')
+```
+
+```{r, echo=F}
+chart1 <- covid_population %>% 
+  filter(date == max(date)) %>% 
+  filter(state == 'California') %>% 
+  mutate(casesPerCapita = (cases / pop19)) %>% 
+  arrange(-casesPerCapita) %>% 
+  head(5)
+knitr::kable(chart1, caption = "5 California Counties With the Most COVID Cases Per Capita", col.names = c('Date', 'County', 'State', 'FIPS', 'Cases', 'Deaths', 'Population', 'Cases Per Capita'))
+```
+
+```{r, echo=F}
+chart2 <- covid_population %>% 
+  filter(state == 'California') %>% 
+  group_by(county) %>% 
+  mutate(new_daily_cases = cases - lag(cases)) %>% 
+  ungroup(county) %>% 
+  mutate(DailyCasesPerCapita = new_daily_cases / pop19) %>% 
+  filter(date == max(date)) %>% 
+  arrange(-DailyCasesPerCapita) %>% 
+  head(5)
+knitr::kable(chart2, caption = '5 California Counties With the Most New Daily COVID Cases Per Capita', col.names = c('Date', 'County' ,'State', 'FIPS', 'Cases', 'Deaths', 'Population', 'New Daily Cases', 'New Daily Cases Per Capita'))
+```
+
+```{r, message=F, warning=F, echo=F}
+list_of_counties <- covid_population %>% 
+  filter(state == 'California') %>% 
+  filter(date %in% (max(date)-13):(max(date))) %>% 
+  group_by(county) %>% 
+  mutate(new_daily_cases = cases - lag(cases)) %>% 
+  ungroup(county) %>% 
+  group_by(county, pop19) %>% 
+  na.omit() %>% 
+  summarize(NewCases = sum(new_daily_cases)) %>% 
+  mutate(newCasesPer = 100000 * (NewCases / pop19))
+```
+## Results
+```{r, echo=F}
+total_num_cases <- subset %>% 
+  select("date", "county", "state", "fips", "cases", "deaths") %>% 
+  filter(date == max(date)) %>% 
+  arrange(-cases) 
+total_new_cases <- list_of_counties %>% 
+  select("county", "NewCases") %>% 
+  arrange(-NewCases)
+list_of_safe_counties <- list_of_counties %>% 
+  select("county", "newCasesPer") %>% 
+  filter(newCasesPer <= 100) %>% 
+  arrange(newCasesPer)
+knitr::kable(total_num_cases, caption = "Total Number of Cases Per California County", col.names = c("Date","County","State","FIPS","Total Cases","Total Deaths"))
+knitr::kable(total_new_cases, caption = "Total New Cases In Last 14 Days Per California County", col.names = c("County","Total New Cases"))
+knitr::kable(list_of_safe_counties, caption = "List of Safe Counties", col.names = c("County","New Cases Per 100,000 People"))
+print("As of 8/13/2020, there are a total of 14 safe counties within the state of California that comply to the California Department of Public Health's criteria of having less than 100 new cases per 100,000 residents over the past 14 days")
+```
+## Question 2
+```{r}
+library(ggthemes)
+covid %>% 
+  filter(state %in% c('New York', 'California', 'Louisiana', 'Florida')) %>% 
+  group_by(state, date) %>% 
+  summarize(cases = sum(cases)) %>% 
+  ungroup(state, date) %>% 
+  group_by(state) %>% 
+  mutate(NewDailyCases = cases - lag(cases)) %>%
+  mutate(SevenDayAvg = rollmean(NewDailyCases, 7, fill = NA)) %>% 
+  na.omit() %>% 
+  pivot_longer(cols = c('NewDailyCases', 'SevenDayAvg'),
+              names_to = 'type',
+              values_to = 'value') %>% 
+  ggplot(aes(x = date, y = value)) +
+  geom_col(aes(color = state)) +
+  labs(title = "Daily, New Cases Per State: COVID-19 Pandemic",
+       x = 'Date',
+       y = "Number of New, Daily Cases",
+       caption = "Based on NY Times Covid-19 Data",
+       subtitle = "Lab 02",
+       color = "") +
+  facet_grid(type~state) +
+  theme_bw() +
+  theme(legend.position = 'none') 
+```
+
+```{r}
+states_covid = covid %>% 
+  filter(state %in% c('New York', 'California', 'Louisiana', 'Florida')) %>% 
+  group_by(state, date) %>% 
+  summarize(cases = sum(cases)) %>% 
+  ungroup(state, date) %>% 
+  group_by(state) %>% 
+  mutate(NewDailyCases = cases - lag(cases)) %>%
+  mutate(SevenDayAvg = rollmean(NewDailyCases, 7, fill = NA)) %>% 
+  na.omit() 
+
+StatePopulationEstimates1 <- read_excel("~/github/geog-176A-labs/data/PopulationEstimates.xls", skip = 2) %>% 
+  select(pop19 = POP_ESTIMATE_2019, state_abbr = State, state = Area_Name) %>% 
+  group_by(state_abbr) %>% 
+  slice_max(pop19, n = 1)
+
+View(StatePopulationEstimates1)
+
+newjoineddata = inner_join(states_covid, StatePopulationEstimates1, by = 'state')
+
+percapdata <- newjoineddata %>% 
+  group_by(state) %>% 
+  mutate(NewCasesPerCap = NewDailyCases / pop19) %>% 
+  mutate(NewSevenDayAvg = rollmean(NewCasesPerCap, 7, fill = NA)) %>% 
+  na.omit()
+
+percapdata %>% 
+  pivot_longer(cols = c('NewCasesPerCap', 'NewSevenDayAvg'),
+              names_to = 'type',
+              values_to = 'value') %>% 
+  ggplot(aes(x = date, y = value)) +
+  geom_col(aes(color = state)) +
+  labs(title = "Daily, New Cases Per Capita Per State: COVID-19 Pandemic",
+       x = 'Date',
+       y = "Number of New, Daily Cases",
+       caption = "Based on NY Times Covid-19 Data",
+       subtitle = "Lab 02",
+       color = "") +
+  facet_grid(type~state) +
+  theme_bw() +
+  theme(legend.position = 'none') 
+```
+Scaling by population had a huge influence on the analysis of the data.  If we look at the first graph, it appears that out of the four states, Louisiana has had the least number of new cases as well as the lowest seven day average.  While this may be the case, the first graph does not show the entire story. If we look at the second graph it is clear that Louisiana has had the most new daily cases **with respect to its population size.**  The first graph makes Louisiana look the best out of the four states while the second graph makes them look the worst.
+
+## Question 3
