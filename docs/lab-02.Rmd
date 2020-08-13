@@ -138,7 +138,7 @@ covid %>%
   mutate(NewDailyCases = cases - lag(cases)) %>%
   mutate(SevenDayAvg = rollmean(NewDailyCases, 7, fill = NA, align = "right")) %>% 
   ggplot(aes(x = date)) +
-  geom_col(aes(y = NewDailyCases), col = NA, fill = "#F5B8B5") +
+  geom_col(aes(y = NewDailyCases), col = "red") +
   geom_line(aes(y = SevenDayAvg), col = "darkred", size = 1) +
   labs(title = "Daily, New Cases Per State: COVID-19 Pandemic",
        x = 'Date',
