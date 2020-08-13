@@ -5,7 +5,7 @@ subtitle: "Lab 02: COVID-19 Pandemic"
 date: "08/11/2020"
 output:
   html_document:
-    theme: journal
+    theme: darkly
 ---
 
 ```{r, message=FALSE, warning=FALSE, echo = F}
@@ -14,10 +14,14 @@ library(knitr)
 library(readxl)
 library(zoo)
 ```
-For this lab we will use the historic, county level data which is stored as an updating CSV at this URL:
+For this project we will use the historic, county level data which is stored as an updating CSV at this URL:
 ```{r, eval = FALSE}
 https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv
 ```
+
+
+My code for this project can be found in my repository [here](https://github.com/TylerChia/geog-176A-labs).
+
 
 ```{r, message=FALSE, warning=FALSE, echo=F}
 url <- 'https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv'
@@ -117,8 +121,8 @@ list_of_safe_counties <- list_of_counties %>%
 knitr::kable(total_num_cases, caption = "Total Number of Cases Per California County", col.names = c("Date","County","State","FIPS","Total Cases","Total Deaths"))
 knitr::kable(total_new_cases, caption = "Total New Cases In Last 14 Days Per California County", col.names = c("County","Total New Cases"))
 knitr::kable(list_of_safe_counties, caption = "List of Safe Counties", col.names = c("County","New Cases Per 100,000 People"))
-print("As of 8/13/2020, there are a total of 14 safe counties within the state of California that comply to the California Department of Public Health's criteria of having less than 100 new cases per 100,000 residents over the past 14 days")
 ```
+As of 8/12/2020, there are a total of **14 safe counties** within the state of California that comply to the California Department of Public Health's criteria of having less than 100 new cases per 100,000 residents over the past 14 days.
 
 *****
 
