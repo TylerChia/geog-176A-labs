@@ -138,7 +138,7 @@ covid %>%
   mutate(NewDailyCases = cases - lag(cases)) %>%
   mutate(SevenDayAvg = rollmean(NewDailyCases, 7, fill = NA, align = "right")) %>% 
   ggplot(aes(x = date)) +
-  geom_col(aes(y = NewDailyCases), col = "red") +
+  geom_col(aes(y = NewDailyCases), col = NA, fill = "#F5B8B5") +
   geom_line(aes(y = SevenDayAvg), col = "darkred", size = 1) +
   labs(title = "Daily, New Cases Per State: COVID-19 Pandemic",
        x = 'Date',
@@ -146,7 +146,7 @@ covid %>%
        caption = "Based on NY Times Covid-19 Data",
        subtitle = "Lab 02",
        color = "") +
-  facet_wrap(~state)
+  facet_wrap(~state) +
   theme_bw() +
   theme(legend.position = 'none') 
 ```
@@ -168,7 +168,6 @@ StatePopulationEstimates1 <- read_excel("~/github/geog-176A-labs/data/Population
   group_by(state_abbr) %>% 
   slice_max(pop19, n = 1)
 
-View(StatePopulationEstimates1)
 
 newjoineddata = inner_join(states_covid, StatePopulationEstimates1, by = 'state')
 
