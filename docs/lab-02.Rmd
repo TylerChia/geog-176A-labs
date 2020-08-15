@@ -247,6 +247,7 @@ ggplot(data = one, aes(x = longitude, y = latitude)) +
   
 ```
 
+*****
 
 In order to describe the movement of the COVID-19 weighted mean throughout the USA over 2020, we first need to understand what a weighted mean center is.  A weighted mean center is the average X and Y coordinate for a series of points weighted by some other variable.  In this specific case, the weighted variable is the daily cumulative cases per county.  From the graph, we can see that the weighted mean center moves from left to right until about May, when it starts to move back in the other direction.  In theory, this makes sense for various reasons.  When looking at the mean center of COVID-19 without the weighting, it is correct to think that the centers would be clustered toward the middle of the USA due to the fact that the majority of cases are split between the two ends of the country in California, Florida, and New York.  Once we take into account the weighting, the movement of the centers begins to take shape.  Up until mid to late April, New York was peaking in terms of its daily cases, thus explaining the rightward movement of the mean centers until about May.  Since then, California's daily cases have spiked significantly in counties such as Los Angeles, Riverside, and Orange, thus explaining the leftward movement post-May.  It will be interesting to continue to see the movement of the weighted mean center of the virus as California and Florida continue to rack up cases.
 
