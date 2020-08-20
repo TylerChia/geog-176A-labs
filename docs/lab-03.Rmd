@@ -73,7 +73,7 @@ filtered_distance_country <- cities2 %>%
   arrange(-dist_to_country) %>% 
   slice(n = 1:5) %>% 
   st_drop_geometry() 
-knitr::kable(filtered_distance_country, caption = "5 Cities Furthest from the US Border", col.names = c("City", "State", "Distance (km)"))
+knitr::kable(filtered_distance_country, caption = "5 Cities Furthest from the US Border", col.names = c("City", "State", "Distance (km)"), align = "ccc")
 ```
 
 ```{r, echo=F, warning=F, message=F}
@@ -91,7 +91,7 @@ filtered_distance <- cities1 %>%
   arrange(-dist_to_state) %>% 
   slice(n = 1:5) %>% 
   st_drop_geometry() 
-knitr::kable(filtered_distance, caption = "5 Cities Furthest from a State Border", col.names = c("City", "State", "Distance (km)"))
+knitr::kable(filtered_distance, caption = "5 Cities Furthest from a State Border", col.names = c("City", "State", "Distance (km)"), align = "ccc")
 ```
 
 ```{r, echo=F, warning=F, message=F}
@@ -109,7 +109,7 @@ filtered_distance_mex <- cities3 %>%
   arrange(-dist_to_mex) %>% 
   slice(n = 1:5) %>% 
   st_drop_geometry() 
-knitr::kable(filtered_distance_mex, caption = "5 Cities Furthest from the Mexican Border", col.names = c("City", "State", "Distance (km)"))
+knitr::kable(filtered_distance_mex, caption = "5 Cities Furthest from the Mexican Border", col.names = c("City", "State", "Distance (km)"), align = "ccc")
 ```
 
 ```{r, echo=F, warning=F, message=F}
@@ -127,13 +127,13 @@ filtered_distance_canada <- cities4 %>%
   arrange(-dist_to_canada) %>% 
   slice(n = 1:5) %>% 
   st_drop_geometry() 
-knitr::kable(filtered_distance_canada, caption = "5 Cities Furthest from the Canadian Border", col.names = c("City", "State", "Distance (km)"))
+knitr::kable(filtered_distance_canada, caption = "5 Cities Furthest from the Canadian Border", col.names = c("City", "State", "Distance (km)"), align = "ccc")
 ```
 
 *****
 
 ## Question 3: Visualization
-
+<center>
 ```{r, echo=F, warning=F, message=F}
 big_cities <- cities %>% 
   slice_max(population, n = 10)
@@ -149,8 +149,10 @@ ggplot() +
        x = "Longitude",
        y = "Latitude")
 ```
+</center>
 
 
+<center>
 ```{r, echo=F, warning=F, message=F}
 filtered_distance_country1 <- cities2 %>% 
   select(city, state_name, dist_to_country) %>% 
@@ -167,8 +169,10 @@ ggplot() +
                             size = 4)+
   labs(title = "Distance Between US Cities and Country Border", color = "Distance (km)")
 ```
+</center>
 
 
+<center>
 ```{r, echo=F, warning=F, message=F}
 filtered_distance1 <- cities1 %>% 
   select(city, state_name, dist_to_state) %>% 
@@ -186,8 +190,10 @@ ggplot() +
                             size = 4)+
   labs(title = "Distance Between US Cities and Nearest State Border", color = "Distance (km)")
 ```
+</center>
 
 
+<center>
 ```{r, echo=F, warning=F, message=F}
 cities5 <- cities %>%
   mutate(dist_to_canada = st_distance(cities, canada),
@@ -219,6 +225,7 @@ ggplot()+
   
   
 ```
+</center>
 
 *****
 
@@ -239,6 +246,7 @@ borderstats <- cities2 %>%
 knitr::kable(borderstats, align = "ccc", caption = "Cities Within 100 Mile Zone of Border", col.names = c("Number of Cities", "Population Within 100 Miles of Border", "Percentage of Total Population"), format.args = list(big.mark = ",", scientific = F))
 ```
 
+<center>
 ```{r, echo=F, warning=F, message=F}
 bordercities <- cities2 %>% 
   filter(dist_to_country < 160)
@@ -263,4 +271,11 @@ ggplot()+
   theme(legend.position = 'none')
   
 ```
+</center>
 
+<center>
+```{r, echo=FALSE}
+library(icon)
+fa("globe", size = 5, color="green")
+```
+</center>
