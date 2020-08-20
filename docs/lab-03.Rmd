@@ -58,7 +58,7 @@ cities = readr::read_csv("../data/uscities.csv") %>%
 *****
 
 ## Question 2: Calculating the Distance of Each US City to (1) National Border (2) Nearest State Border (3) Mexican Bordeer and (4) Canadian Border
-```{r}
+```{r, echo=F, warning=F, message=F}
 conus_ls_country <- conus %>% 
   st_union() %>% 
   st_cast("MULTILINESTRING")
@@ -76,7 +76,7 @@ filtered_distance_country <- cities2 %>%
 knitr::kable(filtered_distance_country, caption = "5 Cities Furthest from the US Border", col.names = c("City", "State", "Distance (km)"))
 ```
 
-```{r}
+```{r, echo=F, warning=F, message=F}
 conus_ls <- conus %>% 
   st_combine() %>% 
   st_cast("MULTILINESTRING")
@@ -94,7 +94,7 @@ filtered_distance <- cities1 %>%
 knitr::kable(filtered_distance, caption = "5 Cities Furthest from a State Border", col.names = c("City", "State", "Distance (km)"))
 ```
 
-```{r}
+```{r, echo=F, warning=F, message=F}
 mexico <-na_boundaries %>% 
   filter(admin == "Mexico") %>% 
   st_cast("MULTILINESTRING")
@@ -112,7 +112,7 @@ filtered_distance_mex <- cities3 %>%
 knitr::kable(filtered_distance_mex, caption = "5 Cities Furthest from the Mexican Border", col.names = c("City", "State", "Distance (km)"))
 ```
 
-```{r}
+```{r, echo=F, warning=F, message=F}
 canada <-na_boundaries %>% 
   filter(admin == "Canada") %>% 
   st_cast("MULTILINESTRING")
@@ -134,7 +134,7 @@ knitr::kable(filtered_distance_canada, caption = "5 Cities Furthest from the Can
 
 ## Question 3: Visualization
 
-```{r}
+```{r, echo=F, warning=F, message=F}
 big_cities <- cities %>% 
   slice_max(population, n = 10)
 ggplot() +
@@ -149,7 +149,9 @@ ggplot() +
        x = "Longitude",
        y = "Latitude")
 ```
-```{r}
+
+
+```{r, echo=F, warning=F, message=F}
 filtered_distance_country1 <- cities2 %>% 
   select(city, state_name, dist_to_country) %>% 
   arrange(-dist_to_country) %>% 
@@ -165,7 +167,9 @@ ggplot() +
                             size = 4)+
   labs(title = "Distance Between US Cities and Country Border", color = "Distance (km)")
 ```
-```{r}
+
+
+```{r, echo=F, warning=F, message=F}
 filtered_distance1 <- cities1 %>% 
   select(city, state_name, dist_to_state) %>% 
   arrange(-dist_to_state) %>% 
@@ -182,7 +186,9 @@ ggplot() +
                             size = 4)+
   labs(title = "Distance Between US Cities and Nearest State Border", color = "Distance (km)")
 ```
-```{r}
+
+
+```{r, echo=F, warning=F, message=F}
 cities5 <- cities %>%
   mutate(dist_to_canada = st_distance(cities, canada),
          dist_to_canada = units::set_units(dist_to_canada, "km"),
@@ -223,7 +229,7 @@ ggplot()+
 Recently, Federal Agencies have claimed basic constitutional rights protected by the Fourth Amendment (protecting Americans from random and arbitrary stops and searches) do not apply fully at our borders (see Portland). For example, federal authorities do not need a warrant or suspicion of wrongdoing to justify conducting what courts have called a “routine search,” such as searching luggage or a vehicle. Specifically, federal regulations give U.S. Customs and Border Protection (CBP) authority to operate within 100 miles of any U.S. “external boundary”. Further information can be found at this [ACLU article](https://www.aclu.org/other/constitution-100-mile-border-zone).
 
 
-```{r}
+```{r, echo=F, warning=F, message=F}
 borderstats <- cities2 %>%
   mutate(totalpopulation = sum(population)) %>%
   filter(dist_to_country < 160) %>% 
@@ -233,7 +239,7 @@ borderstats <- cities2 %>%
 knitr::kable(borderstats, align = "ccc", caption = "Cities Within 100 Mile Zone of Border", col.names = c("Number of Cities", "Population Within 100 Miles of Border", "Percentage of Total Population"), format.args = list(big.mark = ",", scientific = F))
 ```
 
-```{r}
+```{r, echo=F, warning=F, message=F}
 bordercities <- cities2 %>% 
   filter(dist_to_country < 160)
 
