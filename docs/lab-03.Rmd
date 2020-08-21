@@ -34,13 +34,13 @@ eqdc = '+proj=eqdc +lat_0=40 +lon_0=-96 +lat_1=20 +lat_2=60 +x_0=0 +y_0=0 +datum
 ```
 Based on its parameters, this projection has a name of eqdc, a latitude of origin at 40, central meridian at 96, latitude of first standard parallel at 20 and second standard parallel at 60, datum name of NAD83, and units in meters.
 
-```{r}
+```{r, warning=F, message=F}
 conus = USAboundaries::us_states() %>% 
   filter(!state_name %in% c("Puerto Rico", "Alaska", "Hawaii")) %>% 
   st_transform(eqdc)
 ```
 
-```{r}
+```{r, warning=F, message=F}
 na_boundaries <- rnaturalearth::countries110
 na_boundaries <- na_boundaries %>% 
   st_as_sf() %>% 
@@ -48,7 +48,7 @@ na_boundaries <- na_boundaries %>%
   st_transform(eqdc)
 ```
 
-```{r}
+```{r, warning=F, message=F}
 cities = readr::read_csv("../data/uscities.csv") %>%
   st_as_sf(coords = c("lng", "lat"), crs = 4326) %>% 
   st_transform(eqdc) %>% 
@@ -57,7 +57,7 @@ cities = readr::read_csv("../data/uscities.csv") %>%
 
 *****
 
-## Question 2: Calculating the Distance of Each US City to (1) National Border (2) Nearest State Border (3) Mexican Bordeer and (4) Canadian Border
+## Question 2: Calculating the Distance of Each US City to (1) National Border (2) Nearest State Border (3) Mexican Border and (4) Canadian Border
 ```{r, echo=F, warning=F, message=F}
 conus_ls_country <- conus %>% 
   st_union() %>% 
@@ -73,7 +73,7 @@ filtered_distance_country <- cities2 %>%
   arrange(-dist_to_country) %>% 
   slice(n = 1:5) %>% 
   st_drop_geometry() 
-knitr::kable(filtered_distance_country, caption = "5 Cities Furthest from the US Border", col.names = c("City", "State", "Distance (km)"), align = "ccc")
+knitr::kable(filtered_distance_country, caption = "5 Cities Furthest from the US Border", col.names = c("City", "State", "Distance (km)"))
 ```
 
 ```{r, echo=F, warning=F, message=F}
@@ -91,7 +91,7 @@ filtered_distance <- cities1 %>%
   arrange(-dist_to_state) %>% 
   slice(n = 1:5) %>% 
   st_drop_geometry() 
-knitr::kable(filtered_distance, caption = "5 Cities Furthest from a State Border", col.names = c("City", "State", "Distance (km)"), align = "ccc")
+knitr::kable(filtered_distance, caption = "5 Cities Furthest from a State Border", col.names = c("City", "State", "Distance (km)"))
 ```
 
 ```{r, echo=F, warning=F, message=F}
@@ -109,7 +109,7 @@ filtered_distance_mex <- cities3 %>%
   arrange(-dist_to_mex) %>% 
   slice(n = 1:5) %>% 
   st_drop_geometry() 
-knitr::kable(filtered_distance_mex, caption = "5 Cities Furthest from the Mexican Border", col.names = c("City", "State", "Distance (km)"), align = "ccc")
+knitr::kable(filtered_distance_mex, caption = "5 Cities Furthest from the Mexican Border", col.names = c("City", "State", "Distance (km)"))
 ```
 
 ```{r, echo=F, warning=F, message=F}
@@ -127,7 +127,7 @@ filtered_distance_canada <- cities4 %>%
   arrange(-dist_to_canada) %>% 
   slice(n = 1:5) %>% 
   st_drop_geometry() 
-knitr::kable(filtered_distance_canada, caption = "5 Cities Furthest from the Canadian Border", col.names = c("City", "State", "Distance (km)"), align = "ccc")
+knitr::kable(filtered_distance_canada, caption = "5 Cities Furthest from the Canadian Border", col.names = c("City", "State", "Distance (km)"))
 ```
 
 *****
@@ -151,6 +151,7 @@ ggplot() +
 ```
 </center>
 
+*****
 
 <center>
 ```{r, echo=F, warning=F, message=F}
@@ -171,6 +172,7 @@ ggplot() +
 ```
 </center>
 
+*****
 
 <center>
 ```{r, echo=F, warning=F, message=F}
@@ -192,6 +194,7 @@ ggplot() +
 ```
 </center>
 
+*****
 
 <center>
 ```{r, echo=F, warning=F, message=F}
@@ -245,6 +248,7 @@ borderstats <- cities2 %>%
   st_drop_geometry()
 knitr::kable(borderstats, align = "ccc", caption = "Cities Within 100 Mile Zone of Border", col.names = c("Number of Cities", "Population Within 100 Miles of Border", "Percentage of Total Population"), format.args = list(big.mark = ",", scientific = F))
 ```
+These findings match the ACLU estimate in the link above as the article state that nearly two-thirds of the population live within 100 miles of the boarder which is about 200 million people.
 
 <center>
 ```{r, echo=F, warning=F, message=F}
