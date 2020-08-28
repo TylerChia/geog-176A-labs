@@ -1,0 +1,390 @@
+---
+title: "Geography 176A"
+author: "[Tyler Chia](https://github.com/TylerChia)"
+subtitle: "Lab 04: Tesselations, Point-in-Polygon"
+output:
+  html_document:
+    theme: darkly
+---
+
+Libraries used for this project:
+```{r,, warning=F, message=F}
+# SPDS
+library(tidyverse)
+library(sf)
+
+# Data
+library(USAboundariesData)
+library(USAboundaries)
+library(readxl)
+
+# Visualization
+library(rmapshaper)
+library(gghighlight)
+library(knitr)
+library(leaflet)
+```
+
+## Question 1: Creating 5 Different Tessellated Surfaces for the Continental United States
+
+The first image is a plot of the continental US without any sort of simplification to the geometry while the second image is the continental US after it has been "ms_simplified" by a "keep" of 8 percent. 
+```{r, warning=F, message=F, echo=F}
+get_conus = function(data, var){
+  filter(data, !get(var) %in%
+           c("Hawaii", "Puerto Rico", "Alaska","Guam"))
+}
+
+counties = st_transform(us_counties(), 5070) %>%
+  get_conus("state_name") %>% 
+  st_as_sf()
+
+centroids = st_centroid(counties) 
+
+centroids_u = centroids %>% 
+  st_union
+
+v_grid = st_voronoi(centroids_u) %>% 
+  st_cast() %>% 
+  st_as_sf() %>% 
+  mutate(id = 1:n())
+
+t_grid = st_triangulate(centroids_u) %>% 
+  st_cast() %>% 
+  st_as_sf() %>% 
+  mutate(id = 1:n())
+
+sq_grid = st_make_grid(counties, n = 70) %>% 
+  st_as_sf() %>% 
+  mutate(id = 1:n())
+
+hex_grid = st_make_grid(counties, n = 70, square = FALSE) %>% 
+  st_as_sf() %>% 
+  mutate(id = 1:n())
+
+states <- us_states() %>%
+  filter(name != "Alaska" & name != "Puerto Rico" & name != "Hawaii") %>% 
+  st_union() %>% 
+  st_transform(5070)
+
+plot(states)
+mapview::npts(states)
+```
+
+```{r, warning=F, message=F, echo=F}
+us8 = ms_simplify(states, keep = 0.08)
+plot(us8)
+mapview::npts(us8)
+```
+
+
+By simplifying the complexity of the geometry, we were able to go form 3229 points to 256 points.  The ms_simply function reduced the original geometry by 2973 points.  By doing this, the computer has less to process and therefore increases the computation speed when running the code.
+
+
+```{r, warning=F, message=F, echo=F}
+v_grid = st_intersection(v_grid, st_union(us8))
+
+t_grid = st_intersection(t_grid, st_union(us8))
+```
+
+```{r, warning=F, message=F, echo=F}
+plot_tess = function(data, title){
+  ggplot() + 
+    geom_sf(data = data, fill = "white", col = "navy", size = .2) +   
+    theme_void() +
+    labs(title = title, caption = paste("This tesselation has:", nrow(data), "tiles" )) +
+    theme(plot.title = element_text(hjust = .5, color =  "navy", face = "bold"))
+}
+```
+
+
+*****
+<center>
+```{r, warning=F, message=F, echo=F}
+plot_tess(counties, "Counties")
+```
+</center>
+
+*****
+
+<center>
+```{r, warning=F, message=F, echo=F}
+plot_tess(v_grid, "Voronoi Coverage")
+```
+</center>
+
+*****
+
+<center>
+```{r, warning=F, message=F, echo=F}
+plot_tess(t_grid, "Delaunay Triangulation Coverage")
+```
+</center>
+
+*****
+
+<center>
+```{r, warning=F, message=F, echo=F}
+plot_tess(sq_grid, "Square Coverage")
+```
+</center>
+
+*****
+
+<center>
+```{r, warning=F, message=F, echo=F}
+plot_tess(hex_grid, "Hexegonal Coverage")
+```
+</center>
+
+*****
+
+## Question 2: Summary of Statistics from the Tessallated Surfaces of Continental US
+
+```{r, warning=F, message=F, echo=F}
+sum_tess = function(data, title) {
+  area = st_area(data) %>% 
+    units::set_units("km2") %>%
+    units::drop_units() 
+  
+  data_frame(title, nrow(data), mean(area), sd(area), sum(area)) 
+}
+
+tess_summary = bind_rows(
+  sum_tess(counties, "Counties"),
+  sum_tess(v_grid, "Voroni"),
+  sum_tess(t_grid, "Triangulation"),
+  sum_tess(sq_grid, "Grid"),
+  sum_tess(hex_grid, "Hexagon"))
+
+knitr::kable(tess_summary, caption = "Tessellation Characteristics", col.names = c("Type","Elements","Mean Area (km2)","Standard Deviation Area (km2)","Coverage Area"), format.args = list(big.mark = ",", scientific = F))
+```
+
+
+When looking at the traits for each tessellation, it is clear that the the square grid and hexagon tessellations have standard deviation areas of zero.  This is due to the fact that both of these tessellations split the continental United States into equal area tiles of either squares or hexagons.  Another thing to notice when looking at the chart above is that the mean area for the triangulation tessellation is the smallest.  This is due to the fact that this tessellation has the greatest number of tiles which gives it the smallest mean area as well as a smaller standard deviation area than voroni or the original counties.  However, using the triangulation tessellation may become a problem when computing point in polygon purely because of the number of elements.  The higher the number of elements, the longer the computer will take to process all of them.
+
+*****
+
+## Question 3: Building a Points-Per-Polygon Function and Combining it With a Plot Function to Visualize the Number of Dams Per Tile in the US for Each Tessellation
+
+```{r, warning=F, message=F, echo=F}
+NID2019_U <- read_excel("~/github/geog-176A-labs/data/NID2019_U.xlsx") %>% 
+  filter(!is.na(LONGITUDE)) %>% 
+  filter(!is.na(LATITUDE))
+
+sf_NID2019_U <- NID2019_U%>% 
+  st_as_sf(coords = c("LONGITUDE", "LATITUDE"), crs = 4326) %>%
+  st_transform(5070)
+```
+
+```{r, warning=F, message=F, echo=F}
+point_in_polygon3 = function(points, polygon, id){
+  st_join(polygon, points) %>%
+    st_drop_geometry() %>%
+    count(.data[[id]]) %>%
+    setNames(c(id, "n")) %>%
+    left_join(polygon, by = id) %>%
+    st_as_sf()
+}
+```
+
+```{r, warning=F, message=F, echo=F}
+plot_pip = function(data, title){
+  ggplot() +
+    geom_sf(data = data, aes(fill = log(n)), alpha = .9, size = .2, col = NA) +
+    scale_fill_viridis_c() +
+    theme_void() +
+    theme(legend.position = 'none',
+          plot.title = element_text(face = "bold", color = "darkgreen", hjust = .5, size = 18)) +
+    labs(title = title,
+         caption = paste0(sum(data$n), " dams represented"))
+}
+
+
+```
+
+*****
+
+<center>
+```{r, warning=F, message=F, echo=F}
+point_in_polygon3(sf_NID2019_U, counties, "geoid") %>% 
+  plot_pip("Dams Per County")
+```
+</center>
+
+*****
+
+<center>
+```{r, warning=F, message=F, echo=F}
+point_in_polygon3(sf_NID2019_U, v_grid, "id") %>% 
+  plot_pip("Dams per Voronoi")
+```
+</center>
+
+*****
+
+<center>
+```{r, warning=F, message=F, echo=F}
+point_in_polygon3(sf_NID2019_U, t_grid, "id") %>% 
+  plot_pip("Dams per Triangulation")
+```
+</center>
+
+*****
+
+<center>
+```{r, warning=F, message=F, echo=F}
+point_in_polygon3(sf_NID2019_U, sq_grid, "id") %>% 
+  plot_pip("Dams per Grid")
+```
+</center>
+
+*****
+
+<center>
+```{r, warning=F, message=F, echo=F}
+point_in_polygon3(sf_NID2019_U, hex_grid, "id") %>% 
+  plot_pip("Dams per Hexagon")
+```
+</center>
+
+The use of different tessellations can have a large impact on how the data is being represented in a visualization such as a map of the United States.  By definition, a MAUP is a modifiable areal unit problem which is a source of statistical bias that can significantly impact the results of statistical hypothesis tests.  For example, while the triangulation tessellation has a higher number of elements so it can display the elements with a higher number of points better, the tiles do not have equal area so it makes sense that larger tiles will have more points in them.  For that reason, I will be choosing to use the hexagonal tessellation due to the fact that all the elements are of equal size so it represents the number of dams per tile in a better fashion.
+
+*****
+
+## Question 4: Using Point-In-Polygon Function to Determine Which Areas Have the Most Dams with Specific Purposes
+
+<center>
+```{r, warning=F, message=F, echo=F}
+dfcreate = function(abbr, purpose){
+  data_frame(abbr, purpose)
+}
+purpose_summary = bind_rows(
+  dfcreate("I", "Irrigation"),
+  dfcreate("H", "Hydroelectric"),
+  dfcreate("C", "Flood Control"),
+  dfcreate("N", "Navigation"),
+  dfcreate("S", "Water Supply"),
+  dfcreate("R", "Recreation"),
+  dfcreate("P", "Fire Protection"),
+  dfcreate("F", "Fish and Wildlife"),
+  dfcreate("D", "Debris Control"),
+  dfcreate("T", "Tailings"),
+  dfcreate("G", "Grade Stabilization"),
+  dfcreate("O", "Other"))
+
+dam_freq <- strsplit(sf_NID2019_U$PURPOSES, split = "") %>%
+  unlist() %>% 
+  table() %>% 
+  as.data.frame() %>% 
+  setNames(c("abbr", "count")) %>% 
+  left_join(purpose_summary) %>% 
+  mutate(lab = paste0(purpose, "\n(", abbr, ")"))
+
+ggplot(data = dam_freq) +
+  geom_col(aes(x = count, y = lab)) +
+  labs(title = "Number of Dams Serving Each Purpose",
+       x = "Number of Dams",
+       y = "Type")
+  
+```
+</center>
+
+*****
+
+Out of all the types of dams, I chose four that interested me the most.  I chose dams with the purpose of fire protection, water supply, flood control, and navigation.  I wanted to be able to see if the placement of these types of dams made sense in terms of their location.  For example, I was interested to see if the dams with the purpose of fire protection were located in areas that are prone to having wildfires.  
+
+<center>
+```{r, warning=F, message=F, echo=F}
+p_sf_NID2019_U <- sf_NID2019_U %>% 
+  filter(grepl("P", sf_NID2019_U$PURPOSES) == TRUE)
+
+point_in_polygon3(p_sf_NID2019_U, hex_grid, "id") %>% 
+  plot_pip("Areas With Most Dams Used For Fire Protection") +
+  gghighlight(n > (mean(n) + sd(n)))
+  
+```
+</center>
+
+*****
+
+<center>
+```{r, warning=F, message=F, echo=F}
+w_sf_NID2019_U <- sf_NID2019_U %>% 
+  filter(grepl("S", sf_NID2019_U$PURPOSES) == TRUE)
+
+point_in_polygon3(w_sf_NID2019_U, hex_grid, "id") %>% 
+  plot_pip("Areas With Most Dams Used For Water Supply") +
+  gghighlight(n > (mean(n) + sd(n)))
+  
+```
+</center>
+
+*****
+
+<center>
+```{r, warning=F, message=F, echo=F}
+c_sf_NID2019_U <- sf_NID2019_U %>% 
+  filter(grepl("C", sf_NID2019_U$PURPOSES) == TRUE)
+
+point_in_polygon3(c_sf_NID2019_U, hex_grid, "id") %>% 
+  plot_pip("Areas With Most Dams Used For Flood Control") +
+  gghighlight(n > (mean(n) + sd(n)))
+  
+```
+</center>
+
+*****
+
+<center>
+```{r, warning=F, message=F, echo=F}
+n_sf_NID2019_U <- sf_NID2019_U %>% 
+  filter(grepl("N", sf_NID2019_U$PURPOSES) == TRUE)
+
+point_in_polygon3(n_sf_NID2019_U, hex_grid, "id") %>% 
+  plot_pip("Areas With Most Dams Used For Navigation") +
+  gghighlight(n > (mean(n) + sd(n)))
+  
+```
+</center>
+
+When looking at the geographic distribution of these various types of dams, a lot of their locations make sense to me but many do not.  Since I chose a tessellation that has tiles of equal area, areas with more dams are clustered towards the center of the US.  This correlates to a lot of my findings as dams with purposes of fire protection, water supply, and flood control all had clusters in the middle of the continental United States.  However, the placement of fire control dams confused me a bit as the majority of them are placed in the central while it is widely known that California has the most wildfires per year in the US.  Secondly, I was lost as to why many of the dams used for flood control were in the center of the US as well.  Does Texas, Kansas, and the states above have issues with flooding?  The map of dams used for navigation made the most sense as they seem to be clustered along the Mississippi River, the main waterway that runs through the United States.
+
+***** 
+
+## Question 5: Using a Leaflet to Identify the Largest, at Risk, Flood Control Dams in the Country
+
+<center>
+```{r, warning=F, message=F, echo=F}
+missi <- read_sf("~/github/geog-176A-labs/data/majorrivers_0_0") %>% 
+  filter(SYSTEM == "Mississippi")
+
+max_storage = NID2019_U %>% 
+  filter(HAZARD == "H") %>% 
+  filter(!STATE %in% c("AK", "HI", "GU", "PR")) %>% 
+  group_by(STATE) %>% 
+  slice_max(NID_STORAGE, n=1)
+
+max_storage_labels <- max_storage %>% 
+  select(DAM_NAME, NID_STORAGE, PURPOSES, YEAR_COMPLETED)
+
+radius = max_storage %>% 
+  mutate(radius = NID_STORAGE / 1500000) %>% 
+  select(radius)
+
+avector <- as.vector(radius$radius)
+
+leaflet(data = max_storage) %>% 
+  addProviderTiles(providers$CartoDB) %>% 
+  addCircleMarkers(color = "red", fillOpacity = 1, stroke = FALSE, popup = leafpop::popupTable(max_storage_labels, feature.id = FALSE), radius = avector) %>% 
+  addPolylines(data = missi) 
+    
+```
+</center>
+
+<center>
+```{r, echo=FALSE}
+library(icon)
+fa("globe", size = 5, color="green")
+```
+</center>
+
