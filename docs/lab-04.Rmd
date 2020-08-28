@@ -1,7 +1,7 @@
 ---
 title: "Geography 176A"
 author: "[Tyler Chia](https://github.com/TylerChia)"
-subtitle: "Lab 04: Tesselations, Point-in-Polygon"
+subtitle: "Lab 04: Tessellations, Point-in-Polygon"
 output:
   html_document:
     theme: darkly
@@ -366,6 +366,7 @@ missi <- read_sf("~/github/geog-176A-labs/data/majorrivers_0_0") %>%
 max_storage = NID2019_U %>% 
   filter(HAZARD == "H") %>% 
   filter(!STATE %in% c("AK", "HI", "GU", "PR")) %>% 
+  filter(PURPOSES == "C") %>% 
   group_by(STATE) %>% 
   slice_max(NID_STORAGE, n=1)
 
