@@ -28,6 +28,7 @@ library(leaflet)
 ## Question 1: Creating 5 Different Tessellated Surfaces for the Continental United States
 
 The first image is a plot of the continental US without any sort of simplification to the geometry while the second image is the continental US after it has been "ms_simplified" by a "keep" of 8 percent. 
+<center>
 ```{r, warning=F, message=F, echo=F}
 get_conus = function(data, var){
   filter(data, !get(var) %in%
@@ -69,13 +70,15 @@ states <- us_states() %>%
 plot(states)
 mapview::npts(states)
 ```
+</center>
 
+<center>
 ```{r, warning=F, message=F, echo=F}
 us8 = ms_simplify(states, keep = 0.08)
 plot(us8)
 mapview::npts(us8)
 ```
-
+</center>
 
 By simplifying the complexity of the geometry, we were able to go form 3229 points to 256 points.  The ms_simply function reduced the original geometry by 2973 points.  By doing this, the computer has less to process and therefore increases the computation speed when running the code.
 
@@ -247,6 +250,7 @@ point_in_polygon3(sf_NID2019_U, hex_grid, "id") %>%
 ```
 </center>
 
+
 The use of different tessellations can have a large impact on how the data is being represented in a visualization such as a map of the United States.  By definition, a MAUP is a modifiable areal unit problem which is a source of statistical bias that can significantly impact the results of statistical hypothesis tests.  For example, while the triangulation tessellation has a higher number of elements so it can display the elements with a higher number of points better, the tiles do not have equal area so it makes sense that larger tiles will have more points in them.  For that reason, I will be choosing to use the hexagonal tessellation due to the fact that all the elements are of equal size so it represents the number of dams per tile in a better fashion.
 
 *****
@@ -346,6 +350,7 @@ point_in_polygon3(n_sf_NID2019_U, hex_grid, "id") %>%
   
 ```
 </center>
+
 
 When looking at the geographic distribution of these various types of dams, a lot of their locations make sense to me but many do not.  Since I chose a tessellation that has tiles of equal area, areas with more dams are clustered towards the center of the US.  This correlates to a lot of my findings as dams with purposes of fire protection, water supply, and flood control all had clusters in the middle of the continental United States.  However, the placement of fire control dams confused me a bit as the majority of them are placed in the central while it is widely known that California has the most wildfires per year in the US.  Secondly, I was lost as to why many of the dams used for flood control were in the center of the US as well.  Does Texas, Kansas, and the states above have issues with flooding?  The map of dams used for navigation made the most sense as they seem to be clustered along the Mississippi River, the main waterway that runs through the United States.
 
