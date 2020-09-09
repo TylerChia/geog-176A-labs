@@ -231,9 +231,13 @@ knitr::kable(selectonetwo, caption = "Weighted Mean Center of COVID-19", col.nam
 *****
 
 ```{r, echo=F, warning=F, message=F}
-anotheronetwo <- two %>% 
+three <- one %>% 
+  group_by(month) %>% 
+  summarise(monthlycases = max(cases))
+  
+anotheronetwo <- three %>% 
   select(month, monthlycases)
-knitr::kable(anotheronetwo, caption = "New Cases By Month", col.names = c("Month","New Cases"))
+
 ```
 
 *****
