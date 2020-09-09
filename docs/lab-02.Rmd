@@ -121,11 +121,12 @@ knitr::kable(total_num_cases, caption = "Total Number of Cases Per California Co
 knitr::kable(total_new_cases, caption = "Total New Cases In Last 14 Days Per California County", col.names = c("County","Total New Cases"))
 knitr::kable(list_of_safe_counties, caption = "List of Safe Counties", col.names = c("County","New Cases Per 100,000 People"))
 ```
-As of 8/14/2020, there are a total of **13 safe counties** within the state of California that comply to the California Department of Public Health's criteria of having less than 100 new cases per 100,000 residents over the past 14 days.
+As of 9/7/2020, there are a total of **19 "safe" counties** within the state of California that comply to the California Department of Public Health's criteria of having less than 100 new cases per 100,000 residents over the past 14 days.
 
 *****
 
 ## Question 2: What Are The Impacts of Scale on Data Interpretation?
+<center>
 ```{r, echo=F, warning=F, message=F}
 library(ggthemes)
 covid %>% 
@@ -149,9 +150,11 @@ covid %>%
   theme_bw() +
   theme(legend.position = 'none') 
 ```
+</center>
 
 *****
 
+<center>
 ```{r, echo=F, warning=F, message=F}
 states_covid = covid %>% 
   filter(state %in% c('New York', 'California', 'Louisiana', 'Florida')) %>% 
@@ -189,6 +192,7 @@ percapdata %>%
   theme_bw() +
   theme(legend.position = 'none') 
 ```
+</center>
 
 *****
 
@@ -234,6 +238,7 @@ knitr::kable(anotheronetwo, caption = "New Cases By Month", col.names = c("Month
 
 *****
 
+<center>
 ```{r, echo=F, warning=F, message=F}
 ggplot(data = one, aes(x = longitude, y = latitude)) +
   borders("state", fill = "gray90", colour = "maroon") +
@@ -246,6 +251,7 @@ ggplot(data = one, aes(x = longitude, y = latitude)) +
        size = "Total Cases") 
   
 ```
+</center>
 
 *****
 
