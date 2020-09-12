@@ -179,7 +179,7 @@ offset_rast_sb = offsetraster1%>%
 hillshade_sb = hillshade %>% 
   crop(sb)
 
-building_gif = st_intersection(basin, building)
+building_gif = st_intersection(basin, building_point)
 
 gifski::save_gif({
   for(i in 0:20) {
