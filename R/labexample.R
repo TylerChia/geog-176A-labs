@@ -209,4 +209,3 @@ flood = calc(ndvi, thresholding)
 plot(flood)
 
 mapview(flood)
-

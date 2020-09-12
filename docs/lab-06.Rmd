@@ -178,7 +178,6 @@ offset_rast_sb = offsetraster1%>%
 
 hillshade_sb = hillshade %>% 
   crop(sb)
-plot(hill)
 
 building_gif = st_intersection(basin, building)
 
@@ -192,7 +191,7 @@ gifski::save_gif({
     non_impacted = building %>% 
       filter(flooded == 0)
     
-    plot(hillshade_sb, col = gray.colors(256, alpha = .5), main = paste(sum(building$flooded == 1), "Impacted Buildings,", i, "Foot Stage"), legend = F, box =F, axes = F)
+    plot(hillshade_sb, col = gray.colors(256, alpha = .5), main = paste(sum(building_gif$flooded == 1), "Impacted Buildings,", i, "Foot Stage"), legend = F, box =F, axes = F)
     plot(gif_rast, add = T, col = rev(blues9), legend = F, box = F)
     plot(impacted, add = T, col = "red", pch = 16, cex = 0.08)
     plot(non_impacted, add = T, col = "black", pch = 16, cex = 0.08)
