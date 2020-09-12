@@ -209,6 +209,8 @@ gifski::save_gif({
 ![](../data/mission-creek-fim.gif)
 </center>
 
+At stage 0, we are capturing impacted buildings due to the fact that we set a stream buffer to 10 meters.  While these homes are not yet impacted by the flood, they are considered "inundated" because they are within the 10 meter buffer of the river.
+
 <center>
 ```{r, echo=FALSE}
 library(icon)
